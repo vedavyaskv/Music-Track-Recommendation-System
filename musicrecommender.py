@@ -4,10 +4,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 import os
 
-# --- SET PAGE CONFIG ---
 st.set_page_config(page_title="🎵 Music Recommender", layout="wide")
 
-# --- APP HEADER ---
 st.markdown("<h2 style='text-align:center;'>🎵 Music Track Recommendation System</h2>", unsafe_allow_html=True)
 
 @st.cache_data
@@ -41,22 +39,18 @@ def remove_favourite(track_name, artist_name):
         fav_df = fav_df[~((fav_df["Track"] == track_name) & (fav_df["Artist"] == artist_name))]
         fav_df.to_csv(fav_file, index=False)
 
-# Load dataset and model
 df = load_data()
 model, features_scaled = prepare_model(df)
 
-# --- Always sync favourites from file every run ---
 if os.path.exists("favourites.csv"):
     fav_df = pd.read_csv("favourites.csv")
     st.session_state.added_favs = set(f"{t}|{a}" for t, a in zip(fav_df["Track"], fav_df["Artist"]))
 else:
     st.session_state.added_favs = set()
 
-# Store removal confirmation target
 if "confirm_remove" not in st.session_state:
     st.session_state.confirm_remove = None
 
-# --- Tabs ---
 tab1, tab2, tab3 = st.tabs(["🔍 Recommend", "📊 Track Info", "❤️ Favourites"])
 
 with tab1:
@@ -135,32 +129,33 @@ with tab3:
     if os.path.exists(fav_file):
         fav_df = pd.read_csv(fav_file)
 
-        for idx, row in fav_df.iterrows():
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                st.write(f"**{row['Track']}** by *{row['Artist']}*")
-            with col2:
-                if st.button("🗑 Remove", key=f"del_{idx}"):
-                    st.session_state.confirm_remove = (row['Track'], row['Artist'])
-                    st.rerun()
+        if not fav_df.empty:
+            for idx, row in fav_df.iterrows():
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.write(f"**{row['Track']}** by *{row['Artist']}*")
+                with col2:
+                    if st.button("🗑 Remove", key=f"del_{idx}"):
+                        st.session_state.confirm_remove = (row['Track'], row['Artist'])
+                        st.rerun()
 
-        # 🔹 Show confirmation dialog if needed
-        if st.session_state.confirm_remove:
-            track_to_remove, artist_to_remove = st.session_state.confirm_remove
-            st.warning(f"Are you sure you want to remove **{track_to_remove}** by *{artist_to_remove}*?")
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("✅ Yes, remove"):
-                    remove_favourite(track_to_remove, artist_to_remove)
-                    song_key = f"{track_to_remove}|{artist_to_remove}"
-                    if song_key in st.session_state.added_favs:
-                        st.session_state.added_favs.remove(song_key)
-                    st.session_state.confirm_remove = None
-                    st.rerun()
-            with c2:
-                if st.button("❌ Cancel"):
-                    st.session_state.confirm_remove = None
-                    st.rerun()
-
+            if st.session_state.confirm_remove:
+                track_to_remove, artist_to_remove = st.session_state.confirm_remove
+                st.warning(f"Are you sure you want to remove **{track_to_remove}** by *{artist_to_remove}*?")
+                c1, c2 = st.columns(2)
+                with c1:
+                    if st.button("✅ Yes, remove"):
+                        remove_favourite(track_to_remove, artist_to_remove)
+                        song_key = f"{track_to_remove}|{artist_to_remove}"
+                        if song_key in st.session_state.added_favs:
+                            st.session_state.added_favs.remove(song_key)
+                        st.session_state.confirm_remove = None
+                        st.rerun()
+                with c2:
+                    if st.button("❌ Cancel"):
+                        st.session_state.confirm_remove = None
+                        st.rerun()
+        else:
+            st.info("No favourites added yet. Add some from the recommendations tab!")
     else:
         st.info("No favourites added yet. Add some from the recommendations tab!")
