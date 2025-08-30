@@ -13,13 +13,10 @@ A Streamlit web app that recommends music tracks based on audio feature similari
 
 
 ## Tech Stack:
--Python
-
--Streamlit
-
--Pandas
-
--scikit-learn (Nearest Neighbors, StandardScaler)
+- Python
+- Streamlit
+- Pandas
+- scikit-learn (Nearest Neighbors, StandardScaler)
 
 ## Dataset:
 - **Source**: Spotify Features Dataset
